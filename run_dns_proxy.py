@@ -47,9 +47,53 @@ except ImportError as _e:
 
 LISTEN_HOST   = "127.0.0.1"
 LISTEN_PORT   = 53
-UPSTREAM_HOST = "8.8.8.8"
-UPSTREAM_PORT = 53
+UPSTREAM_PORT = 53          # DNS is always port 53 — true for ExpressVPN, OpenVPN, Tunnelblick
 UPSTREAM_TIMEOUT = 3.0
+
+
+def _detect_vpn_dns() -> str:
+    """
+    Detect the upstream DNS Guardian should forward to.
+
+    Chain of custody:
+      1.  scutil --dns  — macOS system resolver, picks up ExpressVPN / Tunnelblick VPN DNS
+      2.  /etc/resolv.conf — written by OpenVPN up-scripts (Tunnelblick writes this too)
+      3.  8.8.8.8 fallback — used only when no VPN is active
+
+    Skips 127.0.0.1 (would loop back into Guardian) and link-local addresses.
+    """
+    _SKIP = {"127.0.0.1", "::1"}
+
+    # 1. scutil --dns — the authoritative macOS resolver database.
+    #    ExpressVPN via Tunnelblick pushes its DNS (e.g. 10.12.0.1) here.
+    try:
+        import subprocess as _sp
+        _r = _sp.run(["scutil", "--dns"], capture_output=True, text=True, timeout=2)
+        for _line in _r.stdout.splitlines():
+            _line = _line.strip()
+            if _line.startswith("nameserver["):
+                _ip = _line.split(":")[-1].strip()
+                if _ip and _ip not in _SKIP and not _ip.startswith("169.254"):
+                    return _ip
+    except Exception:
+        pass
+
+    # 2. /etc/resolv.conf — OpenVPN up-scripts write this on connect
+    try:
+        with open("/etc/resolv.conf") as _f:
+            for _line in _f:
+                _parts = _line.strip().split()
+                if len(_parts) >= 2 and _parts[0] == "nameserver":
+                    _ip = _parts[1]
+                    if _ip and _ip not in _SKIP and not _ip.startswith("169.254"):
+                        return _ip
+    except Exception:
+        pass
+
+    return "8.8.8.8"
+
+
+UPSTREAM_HOST = _detect_vpn_dns()
 GUARDIAN_API  = "http://127.0.0.1:8000"
 DB_PATH       = Path(__file__).parent / "data" / "guardian.db"
 
@@ -359,8 +403,9 @@ def main() -> None:
         )
         sys.exit(1)
 
+    _vpn_tag = "(no VPN — using Google fallback)" if UPSTREAM_HOST == "8.8.8.8" else "(VPN detected ✓ — forwarding through your VPN)"
     print(f"✅ Guardian DNS proxy running on {LISTEN_HOST}:{LISTEN_PORT}", flush=True)
-    print(f"   Upstream: {UPSTREAM_HOST}", flush=True)
+    print(f"   Upstream DNS : {UPSTREAM_HOST}:{UPSTREAM_PORT}  {_vpn_tag}", flush=True)
     print(f"   Guardian API: {GUARDIAN_API}", flush=True)
     print(f"   DB: {DB_PATH}", flush=True)
     print(f"   Set Wi-Fi DNS:  networksetup -setdnsservers Wi-Fi 127.0.0.1", flush=True)

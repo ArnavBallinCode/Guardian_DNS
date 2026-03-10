@@ -64,35 +64,85 @@ Blocked domains return `0.0.0.0` (A) or `::` (AAAA). The browser sees "This site
 
 ## Quick Start
 
+Run each step in a **separate terminal tab** in order.
+
+**Tab 1 — One-time setup (clone + install)**
 ```bash
-# 1. Clone and install
-git clone https://github.com/ArnavBallinCode/Guardian_DNS.git && cd Guardian_DNS
-python3 -m venv .venv && source .venv/bin/activate
+git clone https://github.com/ArnavBallinCode/Guardian_DNS.git
+cd Guardian_DNS
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
-
-# 2. Start Ollama (in a dedicated terminal tab)
-ollama serve
-ollama pull llama3:8b
-
-# 3. Start Guardian server (Tab 1)
-uvicorn app.main:app --host 127.0.0.1 --port 8000
-
-# 4. Start DNS proxy — needs sudo for port 53 (Tab 2)
-sudo brew services stop dnsmasq   # free port 53 if dnsmasq is running
-sudo .venv/bin/python3 run_dns_proxy.py
-
-# 5. Point your Mac's DNS at the proxy (run once, Tab 3)
-networksetup -setdnsservers Wi-Fi 127.0.0.1
-
-# 6. Open the reviewer console
-open http://127.0.0.1:8000/ui/reviewer
 ```
 
-**To stop:**
+**Tab 1 — Ollama (keep this running)**
 ```bash
-# Ctrl-C in Tab 2 (proxy), then:
-networksetup -setdnsservers Wi-Fi empty
+ollama serve
+# First time only — pull the model (3–5 GB download):
+ollama pull llama3:8b
 ```
+
+**Tab 2 — Guardian server (keep this running)**
+```bash
+cd Guardian_DNS
+source .venv/bin/activate
+.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+# You should see: INFO: Uvicorn running on http://127.0.0.1:8000
+```
+
+**Tab 3 — Create accounts (run once, then never again)**
+```bash
+# Reviewer account
+curl -s -X POST http://127.0.0.1:8000/auth/signup \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"reviewer","password":"guardian123","role":"reviewer","display_name":"Reviewer"}'
+
+# Parent account
+curl -s -X POST http://127.0.0.1:8000/auth/signup \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"parent","password":"guardian123","role":"parent","display_name":"Parent"}'
+```
+
+**Tab 3 — Open the UI**
+```bash
+open http://127.0.0.1:8000/ui/login
+# Sign in with: reviewer / guardian123  (or parent / guardian123)
+```
+
+**Tab 4 — DNS proxy (needs sudo, keep this running)**
+```bash
+cd Guardian_DNS
+sudo brew services stop dnsmasq    # only needed if dnsmasq is running
+sudo .venv/bin/python3 run_dns_proxy.py
+# You should see: ✅ Guardian DNS proxy running on 127.0.0.1:53
+```
+
+**Tab 5 — Point your Mac's Wi-Fi DNS at the proxy**
+```bash
+networksetup -setdnsservers Wi-Fi 127.0.0.1
+# Verify blocking works:
+dig +short pornhub.com @127.0.0.1     # → 0.0.0.0  (seed-blocked)
+dig +short sexaddict.com @127.0.0.1   # → 0.0.0.0  (keyword-blocked)
+dig +short google.com @127.0.0.1      # → real IP   (allowed)
+```
+
+**To stop everything**
+```bash
+# 1. Restore normal DNS first (do this before anything else)
+networksetup -setdnsservers Wi-Fi empty
+
+# 2. Ctrl-C in the DNS proxy tab
+
+# 3. Ctrl-C in the server tab (or kill by port)
+pkill -f "uvicorn app.main"
+```
+
+> **Tip — if you see "address already in use" on port 8000:**
+> ```bash
+> pkill -f "uvicorn app.main"
+> sleep 1
+> .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+> ```
 
 ---
 
