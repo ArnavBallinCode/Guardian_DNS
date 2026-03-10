@@ -1,0 +1,1141 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reviewer Console — Guardian DNS</title>
+  <link rel="stylesheet" href="/static/theme.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-secondary);
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    body.auth-ready {
+      opacity: 1;
+    }
+
+    /* Header */
+    header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-primary);
+      padding: 18px 28px;
+      backdrop-filter: blur(8px);
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .brand h1 {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--text-primary);
+    }
+
+    .brand h1 span {
+      color: var(--accent);
+    }
+
+    .brand p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .ollama-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: var(--bg-input);
+      border: 1px solid var(--border-secondary);
+      color: var(--text-muted);
+    }
+
+    .ollama-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+      animation: blink 2s infinite;
+    }
+
+    .ollama-dot.ok {
+      background: #34d399;
+      box-shadow: 0 0 6px rgba(52, 211, 153, 0.5);
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.4
+      }
+    }
+
+    .user-info {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .sign-out {
+      padding: 6px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--red-border);
+      background: var(--red-bg);
+      color: var(--red);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .sign-out:hover {
+      border-color: var(--red);
+    }
+
+    /* Nav */
+    nav {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 28px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    nav a {
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      transition: all 0.2s;
+      color: var(--text-muted);
+      border: 1px solid var(--border-secondary);
+      background: transparent;
+    }
+
+    nav a:hover {
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
+
+    nav a.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    /* Main */
+    .main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px 28px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-primary);
+      border-radius: 18px;
+      padding: 24px;
+      backdrop-filter: blur(8px);
+    }
+
+    .card h2 {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 16px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border-secondary);
+      border-radius: 10px;
+      font-size: 14px;
+      background: var(--bg-input);
+      color: var(--text-secondary);
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-bg);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: var(--text-faint);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 70px;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 10px 0;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .checkbox-row input {
+      accent-color: var(--accent);
+    }
+
+    .btn {
+      padding: 11px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .btn-assess {
+      background: linear-gradient(135deg, #6366f1, #818cf8);
+      color: #fff;
+    }
+
+    .btn-assess:hover {
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-approve {
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid var(--green-border);
+    }
+
+    .btn-approve:hover {
+      background: #059669;
+      color: #fff;
+    }
+
+    .btn-reject {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid var(--red-border);
+    }
+
+    .btn-reject:hover {
+      background: #dc2626;
+      color: #fff;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .status-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .tag {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid var(--border-secondary);
+      color: var(--text-muted);
+      background: var(--bg-input);
+    }
+
+    .tag.ok {
+      color: var(--green);
+      border-color: var(--green-border);
+      background: var(--green-bg);
+    }
+
+    .small-note {
+      font-size: 12px;
+      color: var(--text-dimmed);
+      margin-top: 6px;
+    }
+
+    /* Response panels */
+    .response-section {
+      margin-top: 20px;
+    }
+
+    .response-section h2 {
+      font-size: 16px;
+    }
+
+    .response-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .response-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Toggle pill */
+    .view-toggle {
+      display: inline-flex;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 14px;
+      border: 1px solid var(--border-secondary);
+      background: var(--bg-input);
+    }
+
+    .view-toggle button {
+      padding: 7px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .view-toggle button.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    /* Human-readable card */
+    .hr-card {
+      padding: 20px;
+      border-radius: 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-primary);
+    }
+
+    .risk-meter {
+      height: 12px;
+      border-radius: 99px;
+      background: var(--bg-input);
+      margin: 10px 0;
+      overflow: hidden;
+    }
+
+    .risk-meter-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.6s ease;
+    }
+
+    .risk-low {
+      background: linear-gradient(90deg, #34d399, #6ee7b7);
+    }
+
+    .risk-medium {
+      background: linear-gradient(90deg, #fbbf24, #f59e0b);
+    }
+
+    .risk-high {
+      background: linear-gradient(90deg, #f87171, #ef4444);
+    }
+
+    .risk-critical {
+      background: linear-gradient(90deg, #ef4444, #dc2626);
+    }
+
+    .hr-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-primary);
+    }
+
+    .hr-row:last-child {
+      border-bottom: none;
+    }
+
+    .hr-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .hr-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .hr-explanation {
+      padding: 14px;
+      margin-top: 12px;
+      border-radius: 12px;
+      background: var(--accent-bg);
+      border: 1px solid var(--accent-border);
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+
+    .risk-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .risk-badge.safe {
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid var(--green-border);
+    }
+
+    .risk-badge.medium {
+      background: var(--yellow-bg);
+      color: var(--yellow-text);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .risk-badge.high {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid var(--red-border);
+    }
+
+    pre {
+      background: var(--pre-bg);
+      color: var(--pre-text);
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 13px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border: 1px solid var(--border-primary);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Feed / Queue */
+    .feed {
+      margin-top: 20px;
+    }
+
+    .feed-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .queue-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      background: var(--accent-bg);
+      border: 1px solid var(--accent-border);
+      color: var(--accent);
+    }
+
+    .queue-badge.pending {
+      background: var(--yellow-bg);
+      border-color: rgba(245,158,11,0.3);
+      color: var(--yellow-text);
+    }
+
+    /* Tab strip */
+    .tab-strip {
+      display: inline-flex;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      border: 1px solid var(--border-secondary);
+      background: var(--bg-input);
+    }
+
+    .tab-strip button {
+      padding: 7px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .tab-strip button.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .feed-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      margin-bottom: 6px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-primary);
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    .feed-item:hover {
+      border-color: var(--accent);
+    }
+
+    .feed-item.urgent {
+      border-color: var(--red-border);
+      background: var(--red-bg);
+    }
+
+    .feed-item.urgent:hover {
+      border-color: var(--red);
+    }
+
+    .feed-domain {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .feed-right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .feed-risk {
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .feed-risk.safe {
+      background: var(--green-bg);
+      color: var(--green);
+    }
+
+    .feed-risk.medium {
+      background: var(--yellow-bg);
+      color: var(--yellow-text);
+    }
+
+    .feed-risk.high {
+      background: var(--red-bg);
+      color: var(--red);
+    }
+
+    .feed-status {
+      font-size: 11px;
+      color: var(--text-dimmed);
+    }
+
+    .feed-actions {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .qa-btn {
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+
+    .qa-block {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid var(--red-border);
+    }
+
+    .qa-block:hover {
+      background: #dc2626;
+      color: #fff;
+    }
+
+    .qa-allow {
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid var(--green-border);
+    }
+
+    .qa-allow:hover {
+      background: #059669;
+      color: #fff;
+    }
+
+    @keyframes flashNew {
+      0% { background: var(--accent-bg); border-color: var(--accent); }
+      100% { background: var(--bg-card); border-color: var(--border-primary); }
+    }
+
+    .feed-item.new-arrival {
+      animation: flashNew 1.5s ease-out forwards;
+    }
+
+    .feed-item.urgent.new-arrival {
+      animation: flashNew 1.5s ease-out forwards;
+    }
+
+    .classifying-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      margin-bottom: 6px;
+      background: var(--accent-bg);
+      border: 1px solid var(--accent-border);
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .spin {
+      display: inline-block;
+      animation: spin 1s linear infinite;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-dimmed);
+      font-size: 13px;
+    }
+
+    .click-hint {
+      font-size: 11px;
+      color: var(--text-faint);
+      margin-top: 8px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="header-row">
+      <div class="brand">
+        <h1>Reviewer <span>Console</span></h1>
+        <p>Run AI assessments and vote on AI judgments to build the community blocklist.</p>
+      </div>
+      <div class="header-right">
+        <button class="theme-toggle" onclick="toggleTheme()">☀️</button>
+        <div class="ollama-badge">
+          <div class="ollama-dot" id="ollamaDot"></div>
+          <span id="ollamaText">checking...</span>
+        </div>
+        <span class="user-info" id="userInfo"></span>
+        <button class="sign-out" onclick="guardianAuth.signout()">Sign Out</button>
+      </div>
+    </div>
+  </header>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/ui/reviewer" class="active">Reviewer</a>
+    <a href="/ui/parent">Parent Dashboard</a>
+    <a href="/ui/setup">Setup Guide</a>
+  </nav>
+  <div class="main">
+    <div class="grid">
+      <!-- Assessment Card -->
+      <div class="card">
+        <h2>🔬 Domain Assessment</h2>
+        <div class="field"><label>Domain</label><input type="text" id="domain" placeholder="example.com" /></div>
+        <div class="field"><label>Category Hint</label><input type="text" id="category" value="unknown" /></div>
+        <div class="field"><label>Evidence URLs (one per line, optional)</label><textarea id="evidence"
+            placeholder="https://example.com"></textarea></div>
+        <div class="checkbox-row"><input type="checkbox" id="fastMode" checked /><label for="fastMode"
+            style="margin:0; text-transform:none; font-size:13px; font-weight:600;">Fast mode (skip context
+            fetch)</label></div>
+        <button class="btn btn-assess" id="assessBtn" onclick="doAssess()">⚡ Assess with Local AI</button>
+        <div class="status-tags" id="statusTags"></div>
+        <p class="small-note">Fast mode is best for live demo speed.</p>
+      </div>
+      <!-- Vote Card -->
+      <div class="card">
+        <h2>🗳️ Adult Vote</h2>
+        <div class="field"><label>Reviewer ID</label><input type="text" id="reviewerId" readonly /></div>
+        <p class="small-note">Auto-set from your signed-in username.</p>
+        <div class="field" style="margin-top:14px"><label>Proof / Rationale (required)</label><textarea id="proof"
+            placeholder="Example: I verified this domain contains explicit content"></textarea></div>
+        <div class="btn-row">
+          <button class="btn btn-approve" onclick="doVote(true)">✅ Approve AI Judgment</button>
+          <button class="btn btn-reject" onclick="doVote(false)">❌ Reject AI Judgment</button>
+        </div>
+        <div class="status-tags" id="voteTags"></div>
+      </div>
+    </div>
+    <!-- Response Section -->
+    <div class="response-section" id="responseSection" style="display:none">
+      <div class="view-toggle">
+        <button class="active" onclick="switchView('human')">📖 Human Readable</button>
+        <button onclick="switchView('json')">{ } JSON</button>
+      </div>
+      <div class="response-grid">
+        <div>
+          <div class="card" id="assessHumanView">
+            <h2>Assessment Result</h2>
+            <div id="assessHumanContent"></div>
+          </div>
+          <div class="card hidden" id="assessJsonView">
+            <h2>Assess Response (JSON)</h2>
+            <pre id="assessPre">No assessment yet.</pre>
+          </div>
+        </div>
+        <div>
+          <div class="card" id="voteHumanView">
+            <h2>Vote Result</h2>
+            <div id="voteHumanContent">
+              <p class="empty-state">No vote submitted yet.</p>
+            </div>
+          </div>
+          <div class="card hidden" id="voteJsonView">
+            <h2>Vote Response (JSON)</h2>
+            <pre id="votePre">No vote submitted yet.</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Live Queue / Recent Feed -->
+    <div class="card feed">
+      <div class="feed-header">
+        <h2 id="feedTitle">📋 Live Review Queue</h2>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span class="queue-badge pending" id="pendingBadge" style="display:none">⏳ <span id="pendingCount">0</span> classifying</span>
+          <span class="queue-badge" id="queueCount">0 domains</span>
+          <div class="tab-strip">
+            <button class="active" onclick="switchFeedTab('queue')">🔴 Needs Review</button>
+            <button onclick="switchFeedTab('recent')">📜 All Recent</button>
+          </div>
+        </div>
+      </div>
+      <div id="feedContainer">
+        <p class="empty-state">Loading…</p>
+      </div>
+      <p class="click-hint">Click any domain row to load it for assessment &amp; voting ↑</p>
+    </div>
+  </div>
+  <script src="/static/theme.js"></script>
+  <script>
+    let currentView = 'human';
+    let lastAssessData = null;
+    let lastVoteData = null;
+
+    // Auth guard
+    window._onAuthReady = function (user) {
+      document.getElementById('reviewerId').value = user.username;
+      document.getElementById('userInfo').textContent = user.username;
+    };
+    guardianAuth.requireRole('reviewer');
+
+    // Ollama status
+    async function checkOllama() {
+      try {
+        const res = await fetch('/api/health/ollama');
+        const d = await res.json();
+        document.getElementById('ollamaDot').className = 'ollama-dot' + (d.ok ? ' ok' : '');
+        document.getElementById('ollamaText').textContent = d.ok ? (d.models || []).join(', ') || 'ready' : 'offline';
+      } catch { document.getElementById('ollamaText').textContent = 'error'; }
+    }
+    checkOllama(); setInterval(checkOllama, 20000);
+
+    // View toggle
+    function switchView(view) {
+      currentView = view;
+      document.querySelectorAll('.view-toggle button').forEach((b, i) => {
+        b.classList.toggle('active', (i === 0 && view === 'human') || (i === 1 && view === 'json'));
+      });
+      document.getElementById('assessHumanView').classList.toggle('hidden', view !== 'human');
+      document.getElementById('assessJsonView').classList.toggle('hidden', view !== 'json');
+      document.getElementById('voteHumanView').classList.toggle('hidden', view !== 'human');
+      document.getElementById('voteJsonView').classList.toggle('hidden', view !== 'json');
+    }
+
+    // Risk level helpers
+    function getRiskLevel(p) {
+      if (p >= 0.80) return { label: 'Critical Risk', cls: 'high', barCls: 'risk-critical', emoji: '🚨' };
+      if (p >= 0.60) return { label: 'High Risk', cls: 'high', barCls: 'risk-high', emoji: '⚠️' };
+      if (p >= 0.35) return { label: 'Medium Risk', cls: 'medium', barCls: 'risk-medium', emoji: '⚡' };
+      return { label: 'Low Risk', cls: 'safe', barCls: 'risk-low', emoji: '✅' };
+    }
+
+    function getActionText(data) {
+      const a = data.action || '';
+      if (a === 'block' && data.reason === 'seed_blocklist') return '🛑 INSTANTLY BLOCKED — domain is on the curated seed blocklist of known-harmful sites.';
+      if (a === 'block') return '🛑 PERMANENTLY BLOCKED — this domain has been confirmed harmful by both AI and human reviewers.';
+      if (a === 'temporary_block') return '⏸️ TEMPORARILY BLOCKED — the AI scored this as risky. Awaiting human reviewer votes to make it permanent.';
+      if (a === 'allow') return '✅ ALLOWED — risk score below blocking threshold. The domain is currently accessible.';
+      return a;
+    }
+
+    function renderHumanAssess(data) {
+      const risk = getRiskLevel(data.p_risk || 0);
+      const pct = Math.round((data.p_risk || 0) * 100);
+      const cat = data.llm_category || data.category || 'unknown';
+      const rationale = data.llm_rationale || '';
+      const model = data.model_used || 'unknown';
+      const actionText = getActionText(data);
+
+      return `
+        <div style="text-align:center;margin-bottom:14px">
+          <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:6px">${data.domain}</div>
+          <div class="risk-badge ${risk.cls}">${risk.emoji} ${pct}% Risk — ${risk.label}</div>
+        </div>
+        <div class="risk-meter"><div class="risk-meter-fill ${risk.barCls}" style="width:${pct}%"></div></div>
+        <div class="hr-row"><span class="hr-label">Category</span><span class="hr-value">${cat}</span></div>
+        <div class="hr-row"><span class="hr-label">Action</span><span class="hr-value" style="font-size:12px;text-align:right;max-width:60%">${data.action || 'N/A'}</span></div>
+        <div class="hr-row"><span class="hr-label">Model</span><span class="hr-value">${model}</span></div>
+        ${data.reason === 'seed_blocklist' ? '<div class="hr-row"><span class="hr-label">Source</span><span class="hr-value">Curated Seed Blocklist</span></div>' : ''}
+        <div class="hr-explanation">
+          <strong>${risk.emoji} What this means:</strong><br>
+          ${actionText}
+          ${rationale ? '<br><br><strong>AI Rationale:</strong> ' + rationale : ''}
+        </div>
+      `;
+    }
+
+    function renderHumanVote(data) {
+      const conf = data.combined_confidence != null ? Math.round(data.combined_confidence * 100) : null;
+      const blocked = data.permanently_blocked;
+      return `
+        <div class="hr-row"><span class="hr-label">Domain</span><span class="hr-value">${data.domain}</span></div>
+        <div class="hr-row"><span class="hr-label">Total Votes</span><span class="hr-value">${data.votes}</span></div>
+        <div class="hr-row"><span class="hr-label">Community Agreement</span><span class="hr-value">${data.p_vote != null ? Math.round(data.p_vote * 100) + '%' : 'N/A'}</span></div>
+        ${conf != null ? '<div class="hr-row"><span class="hr-label">Combined Confidence</span><span class="hr-value">' + conf + '%</span></div>' : ''}
+        <div class="hr-row"><span class="hr-label">Permanently Blocked</span><span class="hr-value">${blocked ? '🛑 Yes' : '⏳ Not yet'}</span></div>
+        <div class="hr-explanation">
+          <strong>📊 What this means:</strong><br>
+          ${blocked
+          ? 'This domain is now permanently blocked based on high AI risk score combined with community voting consensus.'
+          : `The community vote has been recorded. ${data.votes < 3 ? 'More votes are needed (minimum 3) before permanent blocking can occur.' : 'The combined AI + human confidence will determine if this domain gets permanently blocked.'}`
+        }
+        </div>
+      `;
+    }
+
+    // Assess
+    async function doAssess() {
+      const domain = document.getElementById('domain').value.trim();
+      if (!domain) { alert('Enter a domain'); return; }
+      const btn = document.getElementById('assessBtn');
+      btn.textContent = '⏳ Assessing...'; btn.disabled = true;
+      document.getElementById('statusTags').innerHTML = '<span class="tag">Assessing...</span>';
+
+      try {
+        const body = {
+          domain, category_hint: document.getElementById('category').value.trim() || 'unknown',
+          evidence_urls: document.getElementById('evidence').value.split('\n').filter(u => u.trim()),
+          skip_context_fetch: document.getElementById('fastMode').checked,
+        };
+        const res = await fetch('/decision/assess', {
+          method: 'POST', headers: guardianAuth.headers(), body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        lastAssessData = data;
+        document.getElementById('assessPre').textContent = JSON.stringify(data, null, 2);
+        document.getElementById('assessHumanContent').innerHTML = renderHumanAssess(data);
+        document.getElementById('responseSection').style.display = 'block';
+        switchView(currentView);
+        document.getElementById('statusTags').innerHTML =
+          `<span class="tag ok">Assess: complete</span><span class="tag">Model: ${data.model_used || 'N/A'}</span>`;
+        loadFeed();
+      } catch (e) {
+        document.getElementById('assessPre').textContent = 'Error: ' + e;
+        document.getElementById('statusTags').innerHTML = '<span class="tag" style="color:var(--red)">Error</span>';
+      }
+      btn.textContent = '⚡ Assess with Local AI'; btn.disabled = false;
+    }
+
+    // Vote
+    async function doVote(agree) {
+      const domain = document.getElementById('domain').value.trim();
+      const reviewerId = document.getElementById('reviewerId').value.trim();
+      const proof = document.getElementById('proof').value.trim();
+      if (!domain || !reviewerId || !proof) { alert('Fill domain, reviewer ID, and proof'); return; }
+      if (!lastAssessData) { alert('Please assess the domain first before voting.'); return; }
+      document.getElementById('voteTags').innerHTML = '<span class="tag">Voting...</span>';
+
+      try {
+        const res = await fetch('/decision/vote', {
+          method: 'POST', headers: guardianAuth.headers(),
+          body: JSON.stringify({ domain, reviewer_id: reviewerId, agree, proof: proof }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          const errMsg = data.detail || JSON.stringify(data);
+          document.getElementById('votePre').textContent = 'Error ' + res.status + ': ' + errMsg;
+          document.getElementById('voteHumanContent').innerHTML = `<div style="color:var(--red);padding:12px;border-radius:10px;background:var(--red-bg);border:1px solid var(--red-border)">⚠️ Vote failed: ${errMsg}</div>`;
+          document.getElementById('voteTags').innerHTML = '<span class="tag" style="color:var(--red)">Vote failed: ' + errMsg + '</span>';
+          document.getElementById('responseSection').style.display = 'block';
+          switchView(currentView);
+          return;
+        }
+        lastVoteData = data;
+        document.getElementById('votePre').textContent = JSON.stringify(data, null, 2);
+        document.getElementById('voteHumanContent').innerHTML = renderHumanVote(data);
+        document.getElementById('responseSection').style.display = 'block';
+        switchView(currentView);
+        document.getElementById('voteTags').innerHTML = '<span class="tag ok">✅ Vote recorded</span>';
+      } catch (e) {
+        document.getElementById('votePre').textContent = 'Error: ' + e;
+        document.getElementById('voteHumanContent').innerHTML = `<div style="color:var(--red);padding:12px;border-radius:10px;background:var(--red-bg);border:1px solid var(--red-border)">⚠️ Network error: ${e}</div>`;
+        document.getElementById('voteTags').innerHTML = '<span class="tag" style="color:var(--red)">Error</span>';
+      }
+    }
+
+    // Feed / Queue
+    let feedTab = 'queue'; // 'queue' | 'recent'
+    let _prevDomains = new Set();
+
+    function switchFeedTab(tab) {
+      feedTab = tab;
+      document.querySelectorAll('.tab-strip button').forEach((b, i) => {
+        b.classList.toggle('active', (i === 0 && tab === 'queue') || (i === 1 && tab === 'recent'));
+      });
+      document.getElementById('feedTitle').textContent = tab === 'queue' ? '📋 Live Review Queue' : '📜 Recent Assessments';
+      loadFeed();
+    }
+
+    // Load a domain from the queue into the assess panel for review
+    function loadDomainForReview(domain) {
+      document.getElementById('domain').value = domain;
+      document.getElementById('assessBtn').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.getElementById('domain').focus();
+    }
+
+    function _feedItemHtml(item, isNew) {
+      const p = item.p_risk || 0;
+      const pct = Math.round(p * 100);
+      const cls = p >= 0.80 ? 'high' : p >= 0.35 ? 'medium' : 'safe';
+      const urgent = item.status === 'temporary_block';
+      const statusLabel = item.status === 'temporary_block' ? '⏸️ Temp-Block' :
+                          item.status === 'permanent_block' ? '🛑 Blocked' :
+                          item.status === 'allow' ? '✅ Allowed' : item.status;
+      const newCls = isNew ? ' new-arrival' : '';
+      const safeD = item.domain.replace(/'/g, "\\'");
+      return `<div class="feed-item${urgent ? ' urgent' : ''}${newCls}" data-domain="${item.domain}">
+        <span class="feed-domain" onclick="loadDomainForReview('${safeD}')" style="cursor:pointer;flex:1">${item.domain}</span>
+        <div class="feed-right">
+          <span class="feed-risk ${cls}">${pct}%</span>
+          <span class="feed-status">${item.category || ''}</span>
+          <span class="feed-status">${statusLabel}</span>
+          <div class="feed-actions" onclick="event.stopPropagation()">
+            <button class="qa-btn qa-block" title="Force permanent block" onclick="overrideDomain('${safeD}','block')">🛑 Block</button>
+            <button class="qa-btn qa-allow" title="Whitelist — allow through DNS" onclick="overrideDomain('${safeD}','allow')">✅ Allow</button>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    async function loadFeed() {
+      try {
+        if (feedTab === 'queue') {
+          const res = await fetch('/api/review-queue?limit=50');
+          const data = await res.json();
+
+          // Update pending classifier badge
+          const pending = data.pending_classify || 0;
+          document.getElementById('pendingBadge').style.display = pending > 0 ? 'inline-flex' : 'none';
+          document.getElementById('pendingCount').textContent = pending;
+          document.getElementById('queueCount').textContent = (data.items || []).length + ' domains';
+
+          const container = document.getElementById('feedContainer');
+          const items = data.items || [];
+          if (!items.length) {
+            container.innerHTML = '<p class="empty-state">No domains in the queue yet.<br>When DNS filtering is active, every site you browse will appear here automatically.<br><br>Or inject a test domain below.</p>' +
+              '<div style="display:flex;gap:8px;margin-top:12px"><input type="text" id="injectInput" placeholder="e.g. reddit.com" style="flex:1" /><button class="btn btn-assess" style="padding:8px 16px;font-size:13px" onclick="injectDomain()">Inject</button></div>';
+            _prevDomains = new Set();
+            return;
+          }
+
+          // Detect new arrivals for flash animation
+          const currentDomains = new Set(items.map(i => i.domain));
+          const newArrivals = new Set([...currentDomains].filter(d => !_prevDomains.has(d) && _prevDomains.size > 0));
+          _prevDomains = currentDomains;
+
+          // Classifying header row if pending > 0
+          const classifyingRow = pending > 0
+            ? `<div class="classifying-row"><span class="spin">⚙️</span> Ollama is classifying ${pending} domain${pending>1?'s':''}...</div>`
+            : '';
+
+          container.innerHTML = classifyingRow + items.map(item => _feedItemHtml(item, newArrivals.has(item.domain))).join('');
+
+        } else {
+          // Recent assessments tab
+          const res = await fetch('/api/recent-assessments?limit=30');
+          const items = await res.json();
+          document.getElementById('queueCount').textContent = items.length + ' entries';
+          document.getElementById('pendingBadge').style.display = 'none';
+
+          const container = document.getElementById('feedContainer');
+          if (!items.length) { container.innerHTML = '<p class="empty-state">No assessments yet.</p>'; return; }
+          container.innerHTML = items.map(item => {
+            const p = item.p_risk || 0;
+            const pct = Math.round(p * 100);
+            const cls = p >= 0.80 ? 'high' : p >= 0.35 ? 'medium' : 'safe';
+            const safeD = item.domain.replace(/'/g, "\\'");
+            return `<div class="feed-item" data-domain="${item.domain}">
+              <span class="feed-domain" onclick="loadDomainForReview('${safeD}')" style="cursor:pointer;flex:1">${item.domain}</span>
+              <div class="feed-right">
+                <span class="feed-risk ${cls}">${pct}%</span>
+                <span class="feed-status">${item.status}</span>
+                <div class="feed-actions" onclick="event.stopPropagation()">
+                  <button class="qa-btn qa-block" onclick="overrideDomain('${safeD}','block')">🛑</button>
+                  <button class="qa-btn qa-allow" onclick="overrideDomain('${safeD}','allow')">✅</button>
+                </div>
+              </div>
+            </div>`;
+          }).join('');
+        }
+      } catch (e) {
+        document.getElementById('feedContainer').innerHTML = '<p class="empty-state">Error loading feed: ' + e + '</p>';
+      }
+    }
+
+    async function injectDomain() {
+      const input = document.getElementById('injectInput');
+      if (!input) return;
+      const domain = input.value.trim();
+      if (!domain) return;
+      try {
+        const res = await fetch('/api/review-queue/inject', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ domain }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          input.value = '';
+          setTimeout(loadFeed, 500);
+        }
+      } catch (e) { alert('Inject failed: ' + e); }
+    }
+
+    loadFeed(); setInterval(loadFeed, 2000);
+
+    // ── Quick override actions ────────────────────────────────
+    async function overrideDomain(domain, action) {
+      try {
+        const res = await fetch('/api/override', {
+          method: 'POST',
+          headers: { ...guardianAuth.headers(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ domain, action }),
+        });
+        const data = await res.json();
+        if (!res.ok) { alert('Override failed: ' + (data.detail || res.status)); return; }
+        // Flash the row
+        const rows = document.querySelectorAll('.feed-item');
+        rows.forEach(r => { if (r.dataset.domain === domain) r.style.opacity = '0.3'; });
+        setTimeout(loadFeed, 300);
+      } catch (e) { alert('Error: ' + e); }
+    }
+  </script>
+</body>
+
+</html>

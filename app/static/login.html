@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guardian DNS — Sign In</title>
+  <link rel="stylesheet" href="/static/theme.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-secondary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 420px;
+      padding: 16px;
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .logo h1 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--text-primary);
+    }
+
+    .logo h1 span {
+      color: var(--accent);
+    }
+
+    .logo p {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-top: 6px;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 12px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-secondary);
+      border-radius: 16px;
+      padding: 28px 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .tabs {
+      display: flex;
+      margin-bottom: 22px;
+      background: var(--bg-input);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+
+    .tab.active {
+      background: var(--accent);
+      color: #fff;
+      border-radius: 10px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 14px;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border-secondary);
+      border-radius: 10px;
+      font-size: 14px;
+      background: var(--bg-input);
+      color: var(--text-secondary);
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-bg);
+    }
+
+    input::placeholder {
+      color: var(--text-faint);
+    }
+
+    .roles {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .role-card {
+      flex: 1;
+      text-align: center;
+      padding: 14px 8px;
+      border-radius: 12px;
+      border: 2px solid var(--border-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+      background: transparent;
+    }
+
+    .role-card:hover {
+      border-color: var(--accent);
+    }
+
+    .role-card.selected {
+      border-color: var(--accent);
+      background: var(--accent-bg);
+    }
+
+    .role-card .icon {
+      font-size: 28px;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .role-card .name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .role-card .desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .submit-btn {
+      display: block;
+      width: 100%;
+      margin-top: 20px;
+      padding: 12px;
+      background: linear-gradient(135deg, #6366f1, #818cf8);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .submit-btn:hover {
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .msg {
+      margin-top: 14px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      display: none;
+    }
+
+    .msg.err {
+      display: block;
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid var(--red-border);
+    }
+
+    .msg.ok {
+      display: block;
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid var(--green-border);
+    }
+
+    .back-link {
+      text-align: center;
+      margin-top: 16px;
+    }
+
+    .back-link a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="top-bar">
+      <button class="theme-toggle" onclick="toggleTheme()">☀️</button>
+    </div>
+    <div class="logo">
+      <h1>Guardian <span>DNS</span></h1>
+      <p>Privacy-first DNS safety for families</p>
+    </div>
+    <div class="card">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('signin')">Sign In</button>
+        <button class="tab" onclick="switchTab('signup')">Sign Up</button>
+      </div>
+      <form id="authForm" onsubmit="handleSubmit(event)">
+        <label for="username">Username</label>
+        <input id="username" type="text" placeholder="Enter username" required autocomplete="username" />
+        <label for="password">Password</label>
+        <input id="password" type="password" placeholder="Enter password" required autocomplete="current-password" />
+        <div id="roleSection" style="display:none">
+          <label>Select Role</label>
+          <div class="roles">
+            <div class="role-card selected" onclick="selectRole('reviewer')" id="role-reviewer">
+              <span class="icon">🔍</span>
+              <span class="name">Reviewer</span>
+              <span class="desc">Assess & vote on domains</span>
+            </div>
+            <div class="role-card" onclick="selectRole('parent')" id="role-parent">
+              <span class="icon">👨‍👩‍👧</span>
+              <span class="name">Parent</span>
+              <span class="desc">View aggregate stats</span>
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="submit-btn" id="submitBtn">Sign In</button>
+      </form>
+      <div id="msg" class="msg"></div>
+    </div>
+    <div class="back-link"><a href="/">← Back to Home</a></div>
+  </div>
+  <script src="/static/theme.js"></script>
+  <script>
+    let mode = 'signin';
+    let selectedRole = 'reviewer';
+    const params = new URLSearchParams(window.location.search);
+    const nextUrl = params.get('next') || '';
+
+    function switchTab(m) {
+      mode = m;
+      document.querySelectorAll('.tab').forEach((t, i) => {
+        t.classList.toggle('active', (i === 0 && m === 'signin') || (i === 1 && m === 'signup'));
+      });
+      document.getElementById('roleSection').style.display = m === 'signup' ? 'block' : 'none';
+      document.getElementById('submitBtn').textContent = m === 'signin' ? 'Sign In' : 'Create Account';
+      document.getElementById('msg').className = 'msg';
+    }
+
+    function selectRole(role) {
+      selectedRole = role;
+      document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+      document.getElementById('role-' + role).classList.add('selected');
+    }
+
+    function showMsg(text, type) {
+      const el = document.getElementById('msg');
+      el.textContent = text;
+      el.className = 'msg ' + type;
+    }
+
+    async function handleSubmit(e) {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      if (!username || !password) { showMsg('Fill in all fields', 'err'); return; }
+
+      try {
+        if (mode === 'signup') {
+          // Step 1: Create account
+          const signupRes = await fetch('/auth/signup', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password, role: selectedRole, display_name: username }),
+          });
+          const signupData = await signupRes.json();
+          if (!signupRes.ok) { showMsg(signupData.detail || 'Signup failed', 'err'); return; }
+          showMsg('Account created! Signing in...', 'ok');
+          // Step 2: Auto sign-in after signup
+        }
+
+        // Sign in (both for direct signin and after signup)
+        const signinRes = await fetch('/auth/signin', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+        const signinData = await signinRes.json();
+        if (!signinRes.ok) { showMsg(signinData.detail || 'Sign in failed', 'err'); return; }
+
+        // signinData = { token: "...", user: { id, username, role, display_name } }
+        localStorage.setItem('guardian_token', signinData.token);
+        localStorage.setItem('guardian_user', JSON.stringify(signinData.user));
+        showMsg('Success! Redirecting...', 'ok');
+
+        const role = signinData.user.role;
+        const dest = nextUrl || (role === 'parent' ? '/ui/parent' : '/ui/reviewer');
+        setTimeout(() => window.location.href = dest, 400);
+      } catch (err) { showMsg('Network error: ' + err, 'err'); }
+    }
+  </script>
+</body>
+
+</html>

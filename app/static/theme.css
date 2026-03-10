@@ -1,0 +1,86 @@
+/* ── Guardian DNS — Shared Theme System ──────────────────── */
+
+:root {
+  /* Dark mode (default) */
+  --bg-primary: #0b0f1a;
+  --bg-secondary: rgba(30,41,59,0.5);
+  --bg-card: rgba(30,41,59,0.5);
+  --bg-input: #0f172a;
+  --bg-header: linear-gradient(135deg, #111827 0%, #1e293b 100%);
+  --border-primary: #1e293b;
+  --border-secondary: #334155;
+  --text-primary: #f1f5f9;
+  --text-secondary: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-dimmed: #64748b;
+  --text-faint: #475569;
+  --accent: #818cf8;
+  --accent-light: #a5b4fc;
+  --accent-bg: rgba(129,140,248,0.12);
+  --accent-border: rgba(129,140,248,0.25);
+  --green: #34d399;
+  --green-bg: rgba(16,185,129,0.12);
+  --green-border: rgba(16,185,129,0.3);
+  --red: #fca5a5;
+  --red-bg: rgba(239,68,68,0.12);
+  --red-border: rgba(239,68,68,0.3);
+  --yellow-bg: rgba(245,158,11,0.15);
+  --yellow-text: #fcd34d;
+  --shadow: 0 20px 60px rgba(0,0,0,0.4);
+  --pre-bg: #030712;
+  --pre-text: #a5b4fc;
+  --glow-1: rgba(99,102,241,0.25);
+  --glow-2: rgba(16,185,129,0.12);
+}
+
+[data-theme="light"] {
+  --bg-primary: #f8fafc;
+  --bg-secondary: rgba(241,245,249,0.9);
+  --bg-card: #ffffff;
+  --bg-input: #f1f5f9;
+  --bg-header: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+  --border-primary: #e2e8f0;
+  --border-secondary: #cbd5e1;
+  --text-primary: #0f172a;
+  --text-secondary: #1e293b;
+  --text-muted: #64748b;
+  --text-dimmed: #94a3b8;
+  --text-faint: #cbd5e1;
+  --accent: #6366f1;
+  --accent-light: #818cf8;
+  --accent-bg: rgba(99,102,241,0.08);
+  --accent-border: rgba(99,102,241,0.2);
+  --green: #059669;
+  --green-bg: rgba(16,185,129,0.08);
+  --green-border: rgba(16,185,129,0.2);
+  --red: #dc2626;
+  --red-bg: rgba(239,68,68,0.08);
+  --red-border: rgba(239,68,68,0.2);
+  --yellow-bg: rgba(245,158,11,0.1);
+  --yellow-text: #b45309;
+  --shadow: 0 20px 60px rgba(0,0,0,0.08);
+  --pre-bg: #f1f5f9;
+  --pre-text: #6366f1;
+  --glow-1: rgba(99,102,241,0.08);
+  --glow-2: rgba(16,185,129,0.05);
+}
+
+/* ── Theme Toggle Button ── */
+.theme-toggle {
+  background: var(--bg-input);
+  border: 1px solid var(--border-secondary);
+  color: var(--text-muted);
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.theme-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}

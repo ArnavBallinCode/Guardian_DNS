@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Setup Guide — Guardian DNS</title>
+  <link rel="stylesheet" href="/static/theme.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-secondary);
+      min-height: 100vh;
+    }
+    header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-primary);
+      padding: 18px 28px;
+      backdrop-filter: blur(8px);
+    }
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .brand h1 { font-size: 22px; font-weight: 900; color: var(--text-primary); }
+    .brand h1 span { color: var(--accent); }
+    .brand p { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .user-info { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+    .sign-out {
+      padding: 6px 14px; border-radius: 10px; border: 1px solid var(--red-border);
+      background: var(--red-bg); color: var(--red); font-size: 12px; font-weight: 700;
+      cursor: pointer; transition: all 0.2s; font-family: inherit;
+    }
+    nav {
+      max-width: 1200px; margin: 0 auto; padding: 14px 28px;
+      display: flex; gap: 8px; flex-wrap: wrap;
+    }
+    nav a {
+      text-decoration: none; padding: 8px 16px; border-radius: 10px;
+      font-size: 13px; font-weight: 700; transition: all 0.2s;
+      color: var(--text-muted); border: 1px solid var(--border-secondary); background: transparent;
+    }
+    nav a:hover { border-color: var(--accent); color: var(--text-primary); }
+    nav a.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .main { max-width: 1200px; margin: 0 auto; padding: 20px 28px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-primary);
+      border-radius: 18px; padding: 22px; backdrop-filter: blur(8px);
+    }
+    .card h2 { font-size: 16px; font-weight: 800; color: var(--text-primary); margin-bottom: 10px; }
+    .card p { font-size: 13px; color: var(--text-muted); margin-top: 8px; line-height: 1.6; }
+    .actions { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+    a.btn, button.btn {
+      text-decoration: none; border: none; border-radius: 10px;
+      padding: 10px 14px; font-weight: 700; cursor: pointer;
+      display: inline-block; font-size: 13px; font-family: inherit; transition: all 0.2s;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { box-shadow: 0 4px 16px rgba(99,102,241,0.4); transform: translateY(-1px); }
+    .btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+    .btn-danger:hover { background: #dc2626; color: #fff; }
+    .btn-neutral { background: var(--bg-input); color: var(--text-secondary); border: 1px solid var(--border-secondary); }
+    .btn-neutral:hover { border-color: var(--accent); color: var(--text-primary); }
+    .mono {
+      margin-top: 12px; background: var(--pre-bg); color: var(--pre-text);
+      border-radius: 10px; padding: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px; overflow-x: auto; white-space: pre-wrap; word-break: break-word;
+      border: 1px solid var(--border-primary);
+    }
+    .small { font-size: 12px; color: var(--text-dimmed); margin-top: 10px; }
+    .line { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 12px; }
+    .line label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    input[type="text"] {
+      width: 100%; border: 1px solid var(--border-secondary); border-radius: 10px;
+      padding: 10px 12px; font-size: 14px; background: var(--bg-input);
+      color: var(--text-secondary); outline: none; font-family: inherit; transition: border-color 0.2s;
+    }
+    input[type="text"]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+    input::placeholder { color: var(--text-faint); }
+    .status {
+      margin-top: 10px; font-size: 12px; padding: 8px 12px; border-radius: 8px;
+      background: var(--bg-input); color: var(--text-muted); border: 1px solid var(--border-primary);
+    }
+    .status.ok { color: var(--green); background: var(--green-bg); border-color: var(--green-border); }
+    .status.err { color: var(--red); background: var(--red-bg); border-color: var(--red-border); }
+    ul { margin: 10px 0 0; padding-left: 18px; }
+    li { margin: 6px 0; font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+    li strong { color: var(--text-primary); }
+    li a { color: var(--accent); }
+    .step-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 50%; background: var(--accent);
+      color: #fff; font-size: 11px; font-weight: 800; margin-right: 8px; flex-shrink: 0;
+    }
+    .step-row { display: flex; align-items: flex-start; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--border-primary); font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+    .step-row:last-child { border-bottom: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-row">
+      <div class="brand">
+        <h1>Setup <span>Guide</span></h1>
+        <p>DNS filter setup, management, and export options for Guardian DNS.</p>
+      </div>
+      <div class="header-right">
+        <button class="theme-toggle" onclick="toggleTheme()">☀️</button>
+        <span class="user-info" id="userInfo"></span>
+        <button class="sign-out" onclick="guardianAuth.signout()">Sign Out</button>
+      </div>
+    </div>
+  </header>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/ui/reviewer">Reviewer</a>
+    <a href="/ui/parent">Parent Dashboard</a>
+    <a href="/ui/setup" class="active">Setup Guide</a>
+  </nav>
+  <div class="main">
+    <!-- How It Works -->
+    <div class="card" style="margin-bottom:20px">
+      <h2>🔧 How Guardian DNS Works</h2>
+      <p style="margin-bottom:12px">Guardian DNS uses a <strong>pure-Python DNS proxy</strong> (<code>run_dns_proxy.py</code>) that intercepts every DNS query on your machine. Blocked domains resolve to <code>0.0.0.0</code> (unreachable). Every query goes through 3 stages:</p>
+      <div class="step-row"><span class="step-badge">1</span><div><strong>DB Check (instant)</strong> — Already-decided domains are answered from SQLite in &lt;1ms. <code>permanent_block</code> and <code>temporary_block</code> both return <code>0.0.0.0</code>.</div></div>
+      <div class="step-row"><span class="step-badge">2</span><div><strong>Seed Blocklist + Keyword Heuristics (instant)</strong> — 186 curated harmful domains pre-loaded at startup, plus 100+ regex patterns on domain names and TLDs. Blocks on the <em>first</em> visit without waiting for AI.</div></div>
+      <div class="step-row"><span class="step-badge">3</span><div><strong>Forward + Local AI (Ollama)</strong> — Unknown domains are forwarded to 8.8.8.8 (page loads), then queued for <code>llama3:8b</code> in the background. Result updates the DB; proxy blocks on the next DNS query.</div></div>
+    </div>
+
+    <!-- Ollama Setup Steps -->
+    <div class="card" style="margin-bottom:20px">
+      <h2>🤖 Ollama Setup (Required for AI Classification)</h2>
+      <p style="margin-bottom:12px">Guardian DNS uses <strong>Ollama</strong> to run an LLM locally on your machine. Here's how to get it running:</p>
+
+      <div class="step-row">
+        <span class="step-badge">1</span>
+        <div>
+          <strong>Install Ollama</strong> — Download from <a href="https://ollama.com" target="_blank">ollama.com</a> or via Homebrew:
+          <div class="mono">brew install ollama</div>
+        </div>
+      </div>
+
+      <div class="step-row">
+        <span class="step-badge">2</span>
+        <div>
+          <strong>Start the Ollama service</strong>
+          <div class="mono">ollama serve</div>
+          <p>Runs on <code>http://127.0.0.1:11434</code> by default. Keep it running in a terminal tab.</p>
+        </div>
+      </div>
+
+      <div class="step-row">
+        <span class="step-badge">3</span>
+        <div>
+          <strong>Pull a model</strong> — We recommend <code>llama3:8b</code> for the best accuracy/speed balance on Apple Silicon:
+          <div class="mono">ollama pull llama3:8b</div>
+          <p>For faster but less accurate results: <code>ollama pull llama3.2:3b</code><br>
+             For highest accuracy: <code>ollama pull llama3:70b</code> (requires ~40GB RAM)</p>
+        </div>
+      </div>
+
+      <div class="step-row">
+        <span class="step-badge">4</span>
+        <div>
+          <strong>Verify Ollama is connected</strong> — Check the Reviewer Console header for the green Ollama status badge, or:
+          <div class="mono">curl http://127.0.0.1:11434/api/tags</div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;padding:12px;border-radius:10px;background:var(--accent-bg);border:1px solid var(--accent-border);font-size:13px;">
+        <strong>⚡ Current Ollama status:</strong> <span id="ollamaStatus">Checking...</span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Start DNS Proxy -->
+      <div class="card">
+        <h2>🟢 Start the DNS Proxy</h2>
+        <p>Starts the pure-Python DNS proxy on port 53 and points your Mac's DNS at <code>127.0.0.1</code>. Run these commands in order (Tab 2 = proxy, Tab 3 = DNS switch).</p>
+        <p style="margin-top:10px"><strong>Step 1 — Free port 53 (if dnsmasq is running):</strong></p>
+        <div class="mono">sudo brew services stop dnsmasq</div>
+        <p style="margin-top:10px"><strong>Step 2 — Start the proxy (keep this terminal open):</strong></p>
+        <div class="mono">sudo .venv/bin/python3 run_dns_proxy.py</div>
+        <p style="margin-top:10px"><strong>Step 3 — Point Wi-Fi DNS at the proxy:</strong></p>
+        <div class="mono" id="applyCmd">networksetup -setdnsservers Wi-Fi 127.0.0.1</div>
+        <div class="actions" style="margin-top:14px">
+          <button class="btn btn-neutral" id="copyApplyCmd">📋 Copy DNS Command</button>
+        </div>
+        <div class="status" id="applyStatus">Verify: <code>dig +short pornhub.com @127.0.0.1</code> → should return <code>0.0.0.0</code></div>
+        <div class="small">Tip: run Guardian server first (<code>uvicorn app.main:app --host 127.0.0.1 --port 8000</code>), then the proxy, then Step 3.</div>
+      </div>
+
+      <!-- Remove DNS Filter -->
+      <div class="card">
+        <h2>🔴 Stop Filtering &amp; Restore DNS</h2>
+        <p>Stops the DNS proxy and restores your Mac's automatic (DHCP) DNS settings. Run in any terminal.</p>
+        <p style="margin-top:10px"><strong>Step 1 — Restore DNS to automatic:</strong></p>
+        <div class="mono" id="removeCmd">networksetup -setdnsservers Wi-Fi empty</div>
+        <p style="margin-top:10px"><strong>Step 2 — Stop the proxy:</strong></p>
+        <div class="mono">Ctrl-C in the proxy terminal</div>
+        <div class="actions" style="margin-top:14px">
+          <button class="btn btn-neutral" id="copyRemoveCmd">📋 Copy DNS Command</button>
+        </div>
+        <div class="status" id="removeStatus">After Step 1 your Mac uses DHCP DNS and Guardian no longer intercepts queries.</div>
+      </div>
+
+      <!-- Export Formats -->
+      <div class="card">
+        <h2>📤 Export for Other DNS Systems</h2>
+        <p>Use these exports to sync permanent blocks to other DNS filters. Re-import periodically.</p>
+        <ul>
+          <li><strong>Pi-hole / dnsmasq:</strong> <a href="/export/domains.txt" target="_blank">/export/domains.txt</a></li>
+          <li><strong>RPZ resolvers (BIND, Unbound):</strong> <a href="/export/rpz" target="_blank">/export/rpz</a></li>
+          <li><strong>AdGuard Home:</strong> import domains from <a href="/export/domains.txt" target="_blank">domains.txt</a></li>
+        </ul>
+        <div class="small">Blocked count: <span id="exportCount">—</span> permanently blocked domains.</div>
+      </div>
+
+
+    </div>
+  </div>
+
+  <script src="/static/theme.js"></script>
+  <script>
+    // Show username from guardianAuth
+    const _user = guardianAuth.getUser();
+    document.getElementById('userInfo').textContent = _user.display_name || _user.username || '';
+
+    // Check Ollama status
+    fetch('/api/health/ollama').then(r => r.json()).then(d => {
+      const el = document.getElementById('ollamaStatus');
+      if (d.ok) {
+        el.innerHTML = `<strong style="color:var(--green)">✅ Connected</strong> — Models available: <strong>${(d.models || []).join(', ') || 'none'}</strong>`;
+      } else {
+        el.innerHTML = `<strong style="color:var(--red)">❌ Offline</strong> — Run <code>ollama serve</code> then <code>ollama pull llama3:8b</code>`;
+      }
+    }).catch(() => {
+      document.getElementById('ollamaStatus').innerHTML = '<strong style="color:var(--red)">❌ Cannot reach Ollama</strong>';
+    });
+
+    // Load export count
+    fetch('/export/domains.txt').then(r => r.text()).then(t => {
+      const count = t.trim() ? t.trim().split('\n').length : 0;
+      document.getElementById('exportCount').textContent = count;
+    }).catch(() => {});
+
+    async function copyText(id) {
+      const text = document.getElementById(id).textContent;
+      try { await navigator.clipboard.writeText(text); } catch {}
+    }
+
+    document.getElementById('copyApplyCmd').addEventListener('click', () => copyText('applyCmd'));
+    document.getElementById('copyRemoveCmd').addEventListener('click', () => copyText('removeCmd'));
+  </script>
+</body>
+</html>

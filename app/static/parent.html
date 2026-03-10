@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parent Dashboard — Guardian DNS</title>
+  <link rel="stylesheet" href="/static/theme.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-secondary);
+      min-height: 100vh;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    body.auth-ready {
+      opacity: 1;
+    }
+
+    header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-primary);
+      padding: 18px 28px;
+      backdrop-filter: blur(8px);
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .brand h1 {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--text-primary);
+    }
+
+    .brand h1 span {
+      color: var(--accent);
+    }
+
+    .brand p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .privacy-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--green-bg);
+      border: 1px solid var(--green-border);
+      color: var(--green);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .user-info {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .sign-out {
+      padding: 6px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--red-border);
+      background: var(--red-bg);
+      color: var(--red);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    nav {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 28px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    nav a {
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      transition: all 0.2s;
+      color: var(--text-muted);
+      border: 1px solid var(--border-secondary);
+      background: transparent;
+    }
+
+    nav a:hover {
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
+
+    nav a.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px 28px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-primary);
+      border-radius: 18px;
+      padding: 24px;
+      backdrop-filter: blur(8px);
+    }
+
+    .card h2 {
+      font-size: 16px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 16px;
+      color: var(--text-muted);
+    }
+
+    .total-count {
+      font-size: 72px;
+      font-weight: 900;
+      letter-spacing: -2px;
+      background: linear-gradient(135deg, var(--accent), var(--green));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+
+    .total-label {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    .total-note {
+      font-size: 12px;
+      color: var(--text-dimmed);
+      margin-top: 4px;
+    }
+
+    /* Category bars */
+    .cat-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .cat-name {
+      min-width: 110px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    .cat-bar-wrap {
+      flex: 1;
+      height: 28px;
+      background: var(--bg-input);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .cat-bar-fill {
+      height: 100%;
+      border-radius: 8px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-light));
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #fff;
+      transition: width 0.6s ease;
+      min-width: 0;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-dimmed);
+      font-size: 13px;
+    }
+
+    /* Privacy card */
+    .privacy-card {
+      margin-top: 20px;
+    }
+
+    .privacy-card h2 {
+      color: var(--green);
+    }
+
+    .privacy-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .privacy-list li {
+      padding: 8px 0;
+      font-size: 14px;
+      line-height: 1.6;
+      border-bottom: 1px solid var(--border-primary);
+      color: var(--text-secondary);
+    }
+
+    .privacy-list li:last-child {
+      border-bottom: none;
+    }
+
+    .privacy-list strong {
+      color: var(--text-primary);
+    }
+
+    .privacy-list em {
+      color: var(--text-muted);
+      font-style: normal;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="header-row">
+      <div class="brand">
+        <h1>Parent <span>Dashboard</span></h1>
+        <div class="privacy-badge" style="margin-top:6px">🔒 Aggregate Privacy Mode</div>
+        <p style="margin-top:6px">You see only category totals — never specific domains or search intent. Your child's
+          privacy is protected.</p>
+      </div>
+      <div class="header-right">
+        <button class="theme-toggle" onclick="toggleTheme()">☀️</button>
+        <span class="user-info" id="userInfo"></span>
+        <button class="sign-out" onclick="guardianAuth.signout()">Sign Out</button>
+      </div>
+    </div>
+  </header>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/ui/reviewer">Reviewer</a>
+    <a href="/ui/parent" class="active">Parent Dashboard</a>
+    <a href="/ui/setup">Setup Guide</a>
+  </nav>
+  <div class="main">
+    <div class="stats-grid">
+      <div class="card">
+        <h2>Total Blocked</h2>
+        <div class="total-count" id="blockedCount">—</div>
+        <div class="total-label">domains in last 7 days</div>
+        <div class="total-note">Auto-refresh every 10s</div>
+      </div>
+      <div class="card">
+        <h2>Blocked by Category</h2>
+        <div id="categoryChart">
+          <p class="empty-state">Loading...</p>
+        </div>
+      </div>
+    </div>
+    <div class="card privacy-card">
+      <h2>🔒 How Privacy Works</h2>
+      <p style="margin-bottom:12px;color:var(--text-muted);font-size:14px">Guardian DNS is designed so that parents
+        <strong style="color:var(--text-primary)">never</strong> see the specific websites their children visit. Here's
+        what this dashboard shows — and what it hides:
+      </p>
+      <ul class="privacy-list">
+        <li><strong>Shown:</strong> Aggregate blocked counts per category <em>(e.g. "Adult Content: 12")</em></li>
+        <li><strong>Hidden:</strong> The actual domain names, timestamps, and browsing patterns</li>
+        <li><strong>Hidden:</strong> Search queries and any content the child accessed</li>
+        <li><strong>Local only:</strong> All data stays on your local device — nothing is sent to the cloud</li>
+      </ul>
+    </div>
+    <div class="card" style="margin-top:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2>📋 Manage Blocklist</h2>
+      </div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px">Domains currently being blocked by the
+        system. Add domains to block them across all devices on your network.</p>
+
+      <div style="display:flex;gap:10px;margin-bottom:20px">
+        <input type="text" id="addDomainInput" placeholder="example.com"
+          style="flex:1;padding:10px;border-radius:6px;border:1px solid var(--border-primary);background:var(--bg-primary);color:var(--text-primary);font-family:inherit">
+        <select id="addCategoryInput"
+          style="padding:10px;border-radius:6px;border:1px solid var(--border-primary);background:var(--bg-primary);color:var(--text-primary);font-family:inherit">
+          <option value="parent_blocked">Manual</option>
+          <option value="adult-content">Adult</option>
+          <option value="gambling">Gambling</option>
+          <option value="social-media">Social Media</option>
+          <option value="gaming">Gaming</option>
+        </select>
+        <button onclick="addDomain()"
+          style="padding:10px 16px;border-radius:6px;background:var(--accent);color:#fff;border:none;font-weight:600;cursor:pointer">Add
+          Domain</button>
+      </div>
+
+      <div id="blocklistContainer">
+        <p class="empty-state">Loading...</p>
+      </div>
+    </div>
+  </div>
+  <script src="/static/theme.js"></script>
+  <script>
+    window._onAuthReady = function (user) {
+      document.getElementById('userInfo').textContent = user.username;
+    };
+    guardianAuth.requireRole('parent');
+
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/parent/stats', { headers: guardianAuth.headers() });
+        const data = await res.json();
+        document.getElementById('blockedCount').textContent = data.total_blocked ?? 0;
+        const chart = document.getElementById('categoryChart');
+        const byCategory = data.by_category || {};
+        const cats = Object.entries(byCategory).map(([category, blocked_count]) => ({ category, blocked_count }));
+        cats.sort((a, b) => b.blocked_count - a.blocked_count);
+        if (!cats.length) { chart.innerHTML = '<p class="empty-state">No blocked domains yet.</p>'; return; }
+        const max = Math.max(...cats.map(c => c.blocked_count), 1);
+        chart.innerHTML = cats.map(c => {
+          const pct = Math.max(8, (c.blocked_count / max) * 100);
+          return `<div class="cat-row"><span class="cat-name">${c.category}</span><div class="cat-bar-wrap"><div class="cat-bar-fill" style="width:${pct}%">${c.blocked_count}</div></div></div>`;
+        }).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    async function loadBlocklist() {
+      try {
+        const res = await fetch('/api/parent/blocklist', { headers: guardianAuth.headers() });
+        const items = await res.json();
+        const container = document.getElementById('blocklistContainer');
+        if (!items.length) { container.innerHTML = '<p class="empty-state">No domains are currently blocked. Once reviewers assess domains, blocked ones will appear here.</p>'; return; }
+        let html = '<table style="width:100%;border-collapse:collapse;font-size:13px">';
+        html += '<thead><tr style="border-bottom:2px solid var(--border-secondary);text-align:left">';
+        html += '<th style="padding:8px 12px;color:var(--text-muted);font-weight:700">Domain</th>';
+        html += '<th style="padding:8px 12px;color:var(--text-muted);font-weight:700">Category</th>';
+        html += '<th style="padding:8px 12px;color:var(--text-muted);font-weight:700">Risk</th>';
+        html += '<th style="padding:8px 12px;color:var(--text-muted);font-weight:700">Status</th>';
+        html += '<th style="padding:8px 12px;color:var(--text-muted);font-weight:700;text-align:right">Action</th>';
+        html += '</tr></thead><tbody>';
+        items.forEach(item => {
+          const risk = Math.round((item.risk_score || 0) * 100);
+          const riskCls = risk >= 80 ? 'high' : risk >= 35 ? 'medium' : 'safe';
+          let statusLabel = item.status === 'permanent_block' ? '🛑 Permanent' : '⏸️ Temporary';
+          if (item.category === 'parent_blocked') statusLabel = '🔒 Parent Rule';
+
+          html += `<tr style="border-bottom:1px solid var(--border-primary)">`;
+          html += `<td style="padding:10px 12px;font-weight:700;color:var(--text-primary)">${item.domain}</td>`;
+          html += `<td style="padding:10px 12px;color:var(--text-secondary)"><span style="background:var(--bg-primary);padding:3px 8px;border-radius:4px;font-size:11px">${item.category}</span></td>`;
+          html += `<td style="padding:10px 12px"><span style="padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;background:var(--${riskCls === 'high' ? 'red' : 'yellow'}-bg);color:var(--${riskCls === 'high' ? 'red' : 'yellow-text'})">${risk}%</span></td>`;
+          html += `<td style="padding:10px 12px;font-size:12px">${statusLabel}</td>`;
+          html += `<td style="padding:10px 12px;text-align:right"><button onclick="removeDomain('${item.domain}')" style="background:transparent;border:1px solid var(--border-primary);color:var(--red-text);padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600">Remove</button></td>`;
+          html += `</tr>`;
+        });
+        html += '</tbody></table>';
+        container.innerHTML = html;
+      } catch (e) { console.error(e); }
+    }
+
+    async function addDomain() {
+      const input = document.getElementById('addDomainInput');
+      const cat = document.getElementById('addCategoryInput');
+      const domain = input.value.trim().toLowerCase();
+      if (!domain) return;
+
+      try {
+        const res = await fetch('/api/parent/blocklist', {
+          method: 'POST',
+          headers: { ...guardianAuth.headers(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ domain, category: cat.value })
+        });
+        if (res.ok) {
+          input.value = '';
+          loadBlocklist();
+          loadStats();
+        }
+      } catch (e) { alert('Failed to add domain'); }
+    }
+
+    async function removeDomain(domain) {
+      if (!confirm(`Are you sure you want to unblock ${domain}?`)) return;
+      try {
+        const res = await fetch(`/api/parent/blocklist/${encodeURIComponent(domain)}`, {
+          method: 'DELETE',
+          headers: guardianAuth.headers()
+        });
+        if (res.ok) {
+          loadBlocklist();
+          loadStats();
+        }
+      } catch (e) { alert('Failed to remove domain'); }
+    }
+
+    loadStats(); loadBlocklist();
+    setInterval(loadStats, 10000);
+    setInterval(loadBlocklist, 15000);
+  </script>
+</body>
+
+</html>

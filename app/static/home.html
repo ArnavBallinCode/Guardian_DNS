@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guardian DNS — Privacy-First Family Safety</title>
+    <link rel="stylesheet" href="/static/theme.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .bg-glow {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(ellipse 60% 50% at 50% -10%, var(--glow-1), transparent),
+                radial-gradient(ellipse 40% 40% at 80% 80%, var(--glow-2), transparent);
+            animation: glow-shift 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow-shift {
+            0% {
+                opacity: 0.8;
+                filter: hue-rotate(0deg)
+            }
+
+            100% {
+                opacity: 1;
+                filter: hue-rotate(15deg)
+            }
+        }
+
+        .page {
+            position: relative;
+            z-index: 1;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 32px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .nav-brand {
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+        }
+
+        .nav-brand span {
+            color: var(--accent);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            padding: 9px 18px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-ghost {
+            color: var(--text-muted);
+            border: 1px solid var(--border-secondary);
+            background: transparent;
+        }
+
+        .btn-ghost:hover {
+            color: var(--text-primary);
+            border-color: var(--accent);
+        }
+
+        .btn-primary {
+            color: #fff;
+            background: linear-gradient(135deg, #6366f1, #818cf8);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 20px rgba(129, 140, 248, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 80px 24px 50px;
+            max-width: 860px;
+            margin: 0 auto;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: var(--accent-bg);
+            border: 1px solid var(--accent-border);
+            color: var(--accent-light);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 999px;
+            margin-bottom: 24px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .hero h1 {
+            font-size: clamp(36px, 6vw, 64px);
+            font-weight: 900;
+            line-height: 1.1;
+            letter-spacing: -1.5px;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .hero h1 .grad {
+            background: linear-gradient(135deg, #818cf8, #6ee7b7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 32px;
+            line-height: 1.6;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .hero-actions a {
+            text-decoration: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+
+        .hero-cta {
+            color: #fff;
+            background: linear-gradient(135deg, #6366f1, #818cf8);
+            box-shadow: 0 4px 24px rgba(99, 102, 241, 0.35);
+        }
+
+        .hero-cta:hover {
+            box-shadow: 0 8px 40px rgba(99, 102, 241, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .hero-secondary {
+            color: var(--text-secondary);
+            border: 1px solid var(--border-secondary);
+            background: var(--bg-secondary);
+            backdrop-filter: blur(8px);
+        }
+
+        .hero-secondary:hover {
+            border-color: var(--accent);
+        }
+
+        .shield-wrap {
+            margin: 40px auto 0;
+            width: 120px;
+            height: 120px;
+        }
+
+        .shield {
+            width: 100%;
+            height: 100%;
+            font-size: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse-shield 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 30px rgba(99, 102, 241, 0.4));
+        }
+
+        @keyframes pulse-shield {
+
+            0%,
+            100% {
+                transform: scale(1)
+            }
+
+            50% {
+                transform: scale(1.08)
+            }
+        }
+
+        .status-bar {
+            max-width: 600px;
+            margin: 60px auto 0;
+            padding: 0 24px;
+            text-align: center;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 999px;
+            font-size: 14px;
+            font-weight: 600;
+            border: 1px solid var(--border-primary);
+            background: var(--bg-secondary);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: blink 2s infinite;
+        }
+
+        .status-dot.ok {
+            background: #34d399;
+            box-shadow: 0 0 8px rgba(52, 211, 153, 0.5);
+        }
+
+        .status-dot.off {
+            background: #ef4444;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0.4
+            }
+        }
+
+        .features {
+            max-width: 1100px;
+            margin: 60px auto 0;
+            padding: 0 24px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-primary);
+            border-radius: 18px;
+            padding: 28px 24px;
+            transition: all 0.3s;
+            backdrop-filter: blur(8px);
+        }
+
+        .feature-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(99, 102, 241, 0.15);
+        }
+
+        .feature-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            margin-bottom: 16px;
+        }
+
+        .feature-card:nth-child(1) .feature-icon {
+            background: rgba(99, 102, 241, 0.15);
+        }
+
+        .feature-card:nth-child(2) .feature-icon {
+            background: rgba(16, 185, 129, 0.15);
+        }
+
+        .feature-card:nth-child(3) .feature-icon {
+            background: rgba(245, 158, 11, 0.15);
+        }
+
+        .feature-card h3 {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .how-section {
+            max-width: 900px;
+            margin: 80px auto 0;
+            padding: 0 24px;
+            text-align: center;
+        }
+
+        .how-section h2 {
+            font-size: 32px;
+            font-weight: 900;
+            margin-bottom: 40px;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+        }
+
+        .step {
+            padding: 24px 16px;
+            border-radius: 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .step-num {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #6366f1, #818cf8);
+            color: #fff;
+            font-weight: 800;
+            font-size: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .step h4 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+
+        .step p {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        footer {
+            text-align: center;
+            padding: 60px 24px 40px;
+            color: var(--text-faint);
+            font-size: 13px;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-glow"></div>
+    <div class="page">
+        <nav>
+            <div class="nav-brand">Guardian <span>DNS</span></div>
+            <div class="nav-links">
+                <button class="theme-toggle" onclick="toggleTheme()">☀️</button>
+                <a href="/docs" class="btn-ghost">API Docs</a>
+                <a href="/ui/login" class="btn-primary">Sign In</a>
+            </div>
+        </nav>
+        <section class="hero">
+            <div class="hero-badge">🔬 Local AI + Human Voting</div>
+            <h1>DNS Safety That<br><span class="grad">Thinks Before Blocking</span></h1>
+            <p>Guardian DNS uses a local LLM to score domain risk in real-time. Adults vote on AI decisions. Parents
+                only see aggregate counts. Zero cloud dependency.</p>
+            <div class="hero-actions">
+                <a href="/ui/login" class="hero-cta">Get Started →</a>
+                <a href="/docs" class="hero-secondary">View API Docs</a>
+            </div>
+            <div class="shield-wrap">
+                <div class="shield">🛡️</div>
+            </div>
+        </section>
+        <div class="status-bar">
+            <div class="status-pill" id="ollamaStatus">
+                <div class="status-dot off" id="ollamaDot"></div>
+                <span id="ollamaText">Checking local AI...</span>
+            </div>
+        </div>
+        <section class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🧠</div>
+                <h3>AI Risk Scoring</h3>
+                <p>A local LLM (Ollama) evaluates every unknown domain and returns a risk probability from 0.0 to 1.0.
+                    No data leaves your machine.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🗳️</div>
+                <h3>Human-in-the-Loop</h3>
+                <p>Adult reviewers vote on AI recommendations. Only when enough humans agree with the AI does a domain
+                    get permanently blocked.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>Privacy-First Design</h3>
+                <p>Parents see only category totals, not specific domains. No browsing history is exposed. Everything
+                    runs locally on your network.</p>
+            </div>
+        </section>
+        <section class="how-section">
+            <h2>How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <h4>Domain Queried</h4>
+                    <p>A DNS request hits your local resolver (dnsmasq)</p>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <h4>AI Scores Risk</h4>
+                    <p>The local LLM analyzes the domain and returns a risk score</p>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <h4>Adults Vote</h4>
+                    <p>Reviewers approve or reject the AI's assessment</p>
+                </div>
+                <div class="step">
+                    <div class="step-num">4</div>
+                    <h4>Block or Allow</h4>
+                    <p>Permanent blocks only with high AI + human confidence</p>
+                </div>
+            </div>
+        </section>
+        <footer>Guardian DNS MVP &middot; Built for privacy by design &middot; <a href="/docs">API Documentation</a>
+        </footer>
+    </div>
+    <script src="/static/theme.js"></script>
+    <script>
+        (async function () {
+            try {
+                const res = await fetch('/api/health/ollama');
+                const data = await res.json();
+                const dot = document.getElementById('ollamaDot');
+                const text = document.getElementById('ollamaText');
+                if (data.ok) { dot.className = 'status-dot ok'; text.textContent = 'Local AI active: ' + (data.models || []).join(', '); }
+                else { dot.className = 'status-dot off'; text.textContent = 'Local AI offline — start Ollama to enable scoring'; }
+            } catch { document.getElementById('ollamaDot').className = 'status-dot off'; document.getElementById('ollamaText').textContent = 'Could not reach Guardian API'; }
+        })();
+    </script>
+</body>
+
+</html>
