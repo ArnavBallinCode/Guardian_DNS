@@ -3,12 +3,14 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green)](https://fastapi.tiangolo.com)
-[![Ollama](https://img.shields.io/badge/AI-Ollama%20llama3%3A8b-orange)](https://ollama.com)
+[![Ollama](https://img.shields.io/badge/AI-Ollama-orange)](https://ollama.com)
 [![Open Source](https://img.shields.io/badge/Open%20Source-%E2%9C%93-brightgreen)](LICENSE)
 
-> **Privacy-first, AI-powered DNS safety filter for families — runs entirely on your local machine. Zero cloud. Zero telemetry. Zero compromise.**
+> **Privacy-first, AI-powered DNS safety filter for families — runs entirely on your local machine. Works alongside ExpressVPN + Tunnelblick. Zero cloud. Zero telemetry.**
 
-Guardian DNS intercepts every DNS query on your device before it leaves the machine. A three-stage pipeline — seed blocklist → keyword heuristics → local LLM — decides in milliseconds whether a domain is safe. Reviewers and parents see a live console to audit, override, or whitelist in real time. All inference runs locally via [Ollama](https://ollama.com) (`llama3:8b`). No data ever leaves your network.
+Guardian DNS intercepts every DNS query on your device before it leaves. A three-stage pipeline — seed blocklist → keyword heuristics → local LLM — decides in milliseconds whether a domain is safe. Reviewers and parents see a live console to audit and override in real time. All inference runs locally via [Ollama](https://ollama.com). No data ever leaves your network.
+
+**VPN compatible:** Designed to work with ExpressVPN via Tunnelblick (OpenVPN). Guardian sits in front of your VPN's DNS — queries are filtered first, then forwarded through your VPN's DNS server.
 
 ---
 
@@ -16,11 +18,12 @@ Guardian DNS intercepts every DNS query on your device before it leaves the mach
 
 | Goal | How we achieve it |
 |---|---|
-| **Privacy by design** | DNS queries never leave the local machine; parent dashboard shows aggregate counts only — no browsing history |
-| **Security by design** | 186-domain seed blocklist, 100+ keyword-regex heuristics, local LLM inference — no external API keys, no inbound attack surface |
-| **Zero cloud dependency** | Ollama runs `llama3:8b` fully offline; SQLite for persistence; no third-party services |
-| **Human + AI consensus** | Domains require both AI risk score ≥ 0.60 **and** community reviewer votes to reach `permanent_block` |
-| **Deployable today** | Pure Python, 3 pip packages, one `sudo` command — works on any macOS/Linux machine in under 5 minutes |
+| **VPN-compatible** | Works with ExpressVPN + Tunnelblick/OpenVPN — Guardian filters DNS first, VPN encrypts after |
+| **Privacy by design** | DNS queries never leave your machine; parent dashboard shows aggregate counts only — no browsing history |
+| **Security by design** | 186-domain seed blocklist, 100+ keyword-regex heuristics, local LLM — no external API keys |
+| **Zero cloud dependency** | Ollama runs fully offline; SQLite for persistence; no third-party services |
+| **Human + AI consensus** | Domains need AI risk ≥ 0.60 **and** reviewer votes to reach `permanent_block` |
+| **Deployable today** | Pure Python, 3 pip packages, one `sudo` command — under 5 minutes on macOS/Linux |
 | **Open source** | MIT licensed — fork it, extend it, ship it |
 
 ---
@@ -30,7 +33,7 @@ Guardian DNS intercepts every DNS query on your device before it leaves the mach
 ```
 You browse Chrome
      │
-     ▼  DNS query: "reddit.com?"
+     ▼  DNS query: "tinder.com?"
 Guardian DNS Proxy  (run_dns_proxy.py  •  UDP 127.0.0.1:53)
   ├─ DB check        → already decided? block or allow immediately
   ├─ Seed blocklist  → 186 known-harmful domains → BLOCK instantly
@@ -54,11 +57,44 @@ Reviewer UI  (http://127.0.0.1:8000/ui/reviewer)
 ```
 
 **Three classification signals (fastest to slowest):**
-1. **Seed blocklist** — 186 curated known-harmful domains → blocked before any network traffic leaves
-2. **Keyword heuristics** — regex patterns for adult, gambling, gore, piracy, phishing, drugs, extremism → blocked on first visit (no LLM)
-3. **Ollama LLM** — any domain not caught above is forwarded + sent to `llama3:8b` for contextual analysis (~2–5s)
+1. **Seed blocklist** — 186 curated known-harmful domains → blocked instantly, no LLM needed
+2. **Keyword heuristics** — 100+ regex patterns (adult, gambling, gore, piracy, phishing, drugs) → blocked on first visit
+3. **Ollama LLM** — any unknown domain gets forwarded + sent to Ollama for contextual analysis (~5–15s)
 
 Blocked domains return `0.0.0.0` (A) or `::` (AAAA). The browser sees "This site can't be reached".
+
+---
+
+## VPN Configuration (ExpressVPN + Tunnelblick/OpenVPN)
+
+Guardian is designed to **sit in front of your VPN's DNS**, not replace it.
+
+```
+Browser → Guardian (127.0.0.1:53) → 8.8.8.8 → Internet
+                                 ↑
+                   (blocked domains never leave — return 0.0.0.0)
+```
+
+**The problem with VPNs:** When you connect ExpressVPN via Tunnelblick (OpenVPN), Tunnelblick automatically pushes ExpressVPN's DNS server (e.g. `10.12.0.1`) to macOS — overriding `127.0.0.1` and bypassing Guardian entirely.
+
+**The fix:** After connecting your VPN, re-assert Guardian as the primary DNS:
+
+```bash
+# Run this after every VPN connect:
+sudo bash scripts/restore_guardian_dns.sh
+
+# Or manually:
+sudo networksetup -setdnsservers Wi-Fi 127.0.0.1
+```
+
+**Correct order every session:**
+1. Start Guardian server (`uvicorn ...`)
+2. Start DNS proxy (`sudo python3 run_dns_proxy.py`)
+3. Connect ExpressVPN via Tunnelblick
+4. Run `restore_guardian_dns.sh` (re-asserts `127.0.0.1`)
+5. Guardian forwards unknown queries to `8.8.8.8` — VPN encrypts all outbound traffic
+
+> **Why does this work?** Guardian only handles DNS (port 53). All actual web traffic still routes through the VPN tunnel. Your privacy and encryption are unchanged — Guardian adds a filtering layer on top.
 
 ---
 
@@ -189,12 +225,12 @@ Open **Reviewer Console** → **"🔴 Needs Review"** tab. Polls every **2 secon
 |---|---|
 | `run_dns_proxy.py` | **Pure-Python DNS server** — the core of the system. No dnsmasq needed. |
 | `app/main.py` | FastAPI server — all API routes + startup |
-| `app/classifier_worker.py` | Async background worker — drains inject queue, calls Ollama |
 | `app/engine.py` | Domain policy logic, vote tallying, seed pre-population |
 | `app/blocklist.py` | Seed list (186 domains) + keyword heuristics (100+ patterns) |
 | `app/llm.py` | Ollama integration — prompt, JSON parse, fallback |
 | `data/guardian.db` | SQLite — `domain_policy`, `votes`, `blocked_events`, auth |
-| `scripts/start_dns_proxy.sh` | Helper start script — stops dnsmasq, runs proxy, shows instructions |
+| `scripts/start_dns_proxy.sh` | Start proxy, stops dnsmasq first |
+| `scripts/restore_guardian_dns.sh` | Re-asserts `127.0.0.1` after Tunnelblick/ExpressVPN overrides DNS |
 
 ---
 
@@ -216,21 +252,21 @@ Open **Reviewer Console** → **"🔴 Needs Review"** tab. Polls every **2 secon
 Guardian_DNS/
 ├── run_dns_proxy.py          # Pure-Python UDP DNS server (port 53)
 ├── app/
-│   ├── main.py               # FastAPI app, routes, startup lifecycle
-│   ├── classifier_worker.py  # Async queue worker — Ollama inference
+│   ├── main.py               # FastAPI app, all routes, startup lifecycle
 │   ├── engine.py             # Domain policy logic, vote tallying
 │   ├── blocklist.py          # 186 seed domains + 100+ keyword patterns
 │   ├── llm.py                # Ollama client, prompt, JSON parser
-│   ├── auth.py               # JWT + bcrypt auth
-│   ├── db.py                 # SQLAlchemy + SQLite setup
+│   ├── auth.py               # Session token auth, bcrypt passwords
+│   ├── db.py                 # SQLite setup
 │   ├── schemas.py            # Pydantic models
-│   ├── settings.py           # Config (thresholds, ports, model name)
+│   ├── settings.py           # Config (thresholds, model name)
 │   └── static/               # HTML/CSS/JS for all UI pages
 ├── scripts/
+│   ├── start_dns_proxy.sh          # Start proxy (stops dnsmasq first)
+│   ├── restore_guardian_dns.sh     # Fix DNS after Tunnelblick/VPN override
 │   ├── apply_local_dns_filter.sh   # Point macOS DNS to 127.0.0.1
 │   └── remove_local_dns_filter.sh  # Restore original DNS
 ├── docs/
-│   ├── how-it-works.md       # Full architecture + demo flow
 │   └── api-examples.md       # curl examples for every endpoint
 ├── data/guardian.db          # SQLite database (auto-created)
 ├── requirements.txt
@@ -241,7 +277,6 @@ Guardian_DNS/
 
 ## Full Documentation
 
-- [How it works — full architecture & demo](docs/how-it-works.md)
 - [API examples](docs/api-examples.md)
 - [Demo guide](DEMO_GUIDE.md)
 
