@@ -47,8 +47,52 @@ except ImportError as _e:
 
 LISTEN_HOST   = "127.0.0.1"
 LISTEN_PORT   = 53
-UPSTREAM_HOST = "8.8.8.8"
 UPSTREAM_PORT = 53
+
+
+def _detect_upstream_dns() -> str:
+    """
+    Auto-detect the real upstream DNS so Guardian always forwards through
+    your active VPN instead of Google.
+
+    Priority order:
+      1. /etc/resolv.conf   — Tunnelblick / OpenVPN writes VPN DNS here on connect
+      2. scutil --dns       — macOS system resolver (catches ExpressVPN & other VPN clients)
+      3. 8.8.8.8            — safe fallback when no VPN is active
+
+    127.0.0.1, ::1, and link-local IPs are skipped to prevent routing loops.
+    """
+    _skip = {"127.0.0.1", "::1"}
+
+    # 1. /etc/resolv.conf — most reliable source when Tunnelblick / OpenVPN is connected
+    try:
+        with open("/etc/resolv.conf") as _f:
+            for _line in _f:
+                _parts = _line.strip().split()
+                if len(_parts) >= 2 and _parts[0] == "nameserver":
+                    _ip = _parts[1]
+                    if _ip and _ip not in _skip and not _ip.startswith("169.254"):
+                        return _ip
+    except Exception:
+        pass
+
+    # 2. scutil --dns — catches ExpressVPN, Cisco AnyConnect, and other VPN clients
+    try:
+        import subprocess as _sp
+        _r = _sp.run(["scutil", "--dns"], capture_output=True, text=True, timeout=2)
+        for _line in _r.stdout.splitlines():
+            _line = _line.strip()
+            if _line.startswith("nameserver["):
+                _ip = _line.split(":")[-1].strip()
+                if _ip and _ip not in _skip and not _ip.startswith("169.254"):
+                    return _ip
+    except Exception:
+        pass
+
+    return "8.8.8.8"
+
+
+UPSTREAM_HOST = _detect_upstream_dns()
 UPSTREAM_TIMEOUT = 3.0
 GUARDIAN_API  = "http://127.0.0.1:8000"
 DB_PATH       = Path(__file__).parent / "data" / "guardian.db"
@@ -360,7 +404,8 @@ def main() -> None:
         sys.exit(1)
 
     print(f"✅ Guardian DNS proxy running on {LISTEN_HOST}:{LISTEN_PORT}", flush=True)
-    print(f"   Upstream: {UPSTREAM_HOST}", flush=True)
+    _vpn_label = "(no VPN — using Google fallback)" if UPSTREAM_HOST == "8.8.8.8" else "(VPN detected ✓)"
+    print(f"   Upstream DNS : {UPSTREAM_HOST}:{UPSTREAM_PORT}  {_vpn_label}", flush=True)
     print(f"   Guardian API: {GUARDIAN_API}", flush=True)
     print(f"   DB: {DB_PATH}", flush=True)
     print(f"   Set Wi-Fi DNS:  networksetup -setdnsservers Wi-Fi 127.0.0.1", flush=True)
